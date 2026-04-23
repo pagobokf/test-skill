@@ -75,9 +75,12 @@ mkdir -p /var/www/html/storage/framework/{sessions,views,cache/data}
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Run database migrations (NOT migrate:fresh — that drops all tables!)
+# Run database migrations (safe — only runs pending migrations, no-op if up to date)
 echo "=== Running migrations ==="
-php artisan migrate --force --verbose 2>&1 || echo "!!! Migration failed — check DB credentials"
+php artisan migrate --force 2>&1 || echo "!!! Migration failed — app will still start"
+
+# Clear any previously cached config so env vars take effect
+php artisan config:clear 2>/dev/null || true
 
 # Cache Laravel configurations
 echo "=== Caching config ==="

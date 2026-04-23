@@ -1,13 +1,12 @@
-import { Button } from '@/components/ui/button'
-import React from 'react'
+import { Button } from '@/components/ui/button';
 
-function go() {
-  return (
-    <div className='text-primary'>
-        <Button>
-            </Button>wtf
-    </div>
-  )
+function Go() {
+    return (
+        <div className="text-primary">
+            <Button />
+            wtf
+        </div>
+    );
 }
 
-export default go
+export default Go;

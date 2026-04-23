@@ -57,8 +57,8 @@ RUN cat <<'EOF' > /usr/local/bin/start.sh
 sed -i "s/Listen 80/Listen ${PORT:-80}/g" /etc/apache2/ports.conf
 sed -i "s/<VirtualHost \\*:80>/<VirtualHost \\*:${PORT:-80}>/g" /etc/apache2/sites-available/000-default.conf
 
-# Run database migrations
-php artisan migrate --force
+# Run database migrations (fresh to clear any partial migration state)
+php artisan migrate:fresh --force
 
 # Cache Laravel configurations
 php artisan config:cache

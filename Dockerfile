@@ -33,7 +33,8 @@ ENV COMPOSER_MEMORY_LIMIT=-1
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Install Node dependencies and build assets for React/Inertia
-RUN npm install
+# Remove Windows-generated lockfile so npm resolves Linux-compatible packages
+RUN rm -f package-lock.json && npm install
 RUN npm run build
 
 # Configure Apache DocumentRoot to point to Laravel's public directory

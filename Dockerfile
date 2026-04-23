@@ -53,18 +53,31 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 # run migrations, and optimize caches before starting Apache
 RUN cat <<'EOF' > /usr/local/bin/start.sh
 #!/bin/bash
+set -e
+
+echo "=== Starting Laravel application ==="
+
 # Bind Apache to the PORT assigned by Render
 sed -i "s/Listen 80/Listen ${PORT:-80}/g" /etc/apache2/ports.conf
 sed -i "s/<VirtualHost \\*:80>/<VirtualHost \\*:${PORT:-80}>/g" /etc/apache2/sites-available/000-default.conf
 
-# Run database migrations (fresh to clear any partial migration state)
-php artisan migrate:fresh --force
+# Create storage symlink
+php artisan storage:link 2>/dev/null || true
+
+# Run database migrations
+echo "=== Running migrations ==="
+php artisan migrate:fresh --force --verbose 2>&1 || {
+    echo "!!! Migration failed, attempting regular migrate ==="
+    php artisan migrate --force --verbose 2>&1 || echo "!!! Migrate also failed"
+}
 
 # Cache Laravel configurations
+echo "=== Caching config ==="
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+echo "=== Starting Apache on port ${PORT:-80} ==="
 # Start Apache in the foreground
 exec docker-php-entrypoint apache2-foreground
 EOF

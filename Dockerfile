@@ -61,15 +61,23 @@ echo "=== Starting Laravel application ==="
 sed -i "s/Listen 80/Listen ${PORT:-80}/g" /etc/apache2/ports.conf
 sed -i "s/<VirtualHost \\*:80>/<VirtualHost \\*:${PORT:-80}>/g" /etc/apache2/sites-available/000-default.conf
 
+# If APP_KEY is not set in environment, generate one
+if [ -z "$APP_KEY" ]; then
+    echo "!!! WARNING: APP_KEY not set. Generating one (set it in Render env vars!) ==="
+    php artisan key:generate --force
+fi
+
 # Create storage symlink
 php artisan storage:link 2>/dev/null || true
 
-# Run database migrations
+# Ensure storage directories exist with correct permissions
+mkdir -p /var/www/html/storage/framework/{sessions,views,cache/data}
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Run database migrations (NOT migrate:fresh — that drops all tables!)
 echo "=== Running migrations ==="
-php artisan migrate:fresh --force --verbose 2>&1 || {
-    echo "!!! Migration failed, attempting regular migrate ==="
-    php artisan migrate --force --verbose 2>&1 || echo "!!! Migrate also failed"
-}
+php artisan migrate --force --verbose 2>&1 || echo "!!! Migration failed — check DB credentials"
 
 # Cache Laravel configurations
 echo "=== Caching config ==="
